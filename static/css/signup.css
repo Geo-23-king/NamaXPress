@@ -1,0 +1,222 @@
+/* 🔷 Base setup */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* 🔮 Background and layout */
+body {
+  background: radial-gradient(circle at top, #0b0026, #050011);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #fff;
+  overflow-x: hidden;
+  padding: 20px; /* adds breathing room on mobile */
+}
+
+/* 🌟 Signup card */
+.signup-card {
+  background: rgba(15, 10, 40, 0.9);
+  padding: 2.5rem;
+  border-radius: 20px;
+  box-shadow: 0 0 40px rgba(103, 58, 255, 0.5);
+  width: 100%;
+  max-width: 380px;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+  backdrop-filter: blur(6px);
+}
+
+/* 📸 Logo */
+.signup-card img {
+  width: 160px;
+  max-width: 60%;
+  border-radius: 20px;
+  margin-bottom: 1rem;
+  box-shadow: 0 0 25px rgba(0, 150, 255, 0.6);
+}
+
+/* 📝 Title */
+.signup-card h2 {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #c8bfff;
+  text-shadow: 0 0 8px #5d47ff;
+  font-size: clamp(1.4rem, 4vw, 1.8rem);
+}
+
+/* 💬 Subtitle text */
+.signup-card p {
+  font-size: clamp(0.85rem, 3vw, 0.95rem);
+  color: #a0a0d0;
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+
+/* 🔑 Input fields */
+.signup-card input {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  outline: none;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+}
+
+.signup-card input:focus {
+  box-shadow: 0 0 10px #6a00ff;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* 👁 Password visibility toggle */
+.password-field {
+  position: relative;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.password-input {
+  width: 100%;
+  padding-right: 40px;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  font-size: 18px;
+  color: #aaa;
+  transition: 0.3s ease;
+}
+
+.toggle-password:hover {
+  color: #fff;
+  text-shadow: 0 0 10px #6a0dad;
+}
+
+/* ✨ Buttons */
+.signup-card button,
+.btn-signup {
+  width: 100%;
+  padding: 12px 0;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #6b00ff, #00b3ff);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 0 0 20px rgba(0, 179, 255, 0.6),
+              0 0 40px rgba(107, 0, 255, 0.5);
+  transition: all 0.3s ease;
+}
+
+.signup-card button:hover,
+.btn-signup:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 25px rgba(0, 150, 255, 0.7);
+}
+
+/* 🔗 Login link */
+.login-link {
+  margin-top: 1rem;
+  color: #a0a0d0;
+  font-size: clamp(0.85rem, 3vw, 0.95rem);
+}
+
+.login-link a {
+  color: #00d4ff;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.login-link a:hover {
+  text-decoration: underline;
+}
+
+/* ⚠️ Flash message styling */
+.flash-message.danger {
+  background: rgba(255, 0, 0, 0.15);
+  color: #ff4d4d;
+  border: 1px solid #ff1a1a;
+  box-shadow: 0 0 10px #ff3333, 0 0 20px #ff0000;
+  padding: 12px;
+  margin: 10px 0;
+  border-radius: 10px;
+  text-align: center;
+  animation: neonPulse 0.8s ease-in-out;
+}
+
+@keyframes neonPulse {
+  0% { opacity: 0; transform: scale(0.95); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* 🌈 Floating glow background */
+.glow {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(98, 0, 255, 0.3), transparent 70%);
+  top: -200px;
+  left: -200px;
+  filter: blur(80px);
+  animation: pulse 6s ease-in-out infinite;
+  z-index: 1;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.1); opacity: 1; }
+}
+
+/* 📱 Responsive design */
+@media (max-width: 600px) {
+  body {
+    padding: 15px;
+    align-items: flex-start;
+  }
+
+  .signup-card {
+    padding: 2rem 1.5rem;
+    border-radius: 15px;
+    width: 100%;
+    margin-top: 50px;
+  }
+
+  .signup-card img {
+    width: 120px;
+  }
+
+  .signup-card h2 {
+    font-size: 1.5rem;
+  }
+
+  .signup-card p {
+    font-size: 0.85rem;
+  }
+
+  .btn-signup {
+    font-size: 0.9rem;
+    padding: 10px 0;
+  }
+
+  .glow {
+    width: 400px;
+    height: 400px;
+    top: -100px;
+    left: -100px;
+    filter: blur(60px);
+  }
+}

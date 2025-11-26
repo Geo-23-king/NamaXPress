@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nama X Press Booking</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+
+  <style>
+    /* ================= Global Fixes ================= */
+    .form-label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 5px;
+      color: #00f0ff;
+      text-shadow: 0 0 5px #00f0ff;
+    }
+    .top-right-container {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      display: flex;
+      gap: 8px;
+      z-index: 1000;
+      font-family: 'Poppins', sans-serif;
+      flex-wrap: wrap;
+    }
+    .top-right-container a,
+    .top-right-container button {
+      font-size: 0.9rem;
+      padding: 6px 10px;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+    #online-users-box {
+      display: inline-block;
+      padding: 6px 12px;
+      background: rgba(0, 240, 255, 0.15);
+      border: 1px solid #00f0ff;
+      border-radius: 12px;
+      text-align: center;
+      font-weight: 600;
+      color: #00f0ff;
+      text-shadow: 0 0 5px #00f0ff;
+      margin-top: 8px;
+    }
+    @media (max-width: 600px) {
+      .top-right-container { top: 5px; right: 5px; gap: 4px; }
+      .top-right-container a, .top-right-container button { font-size: 0.85rem; padding: 5px 8px; }
+      .welcome-center { font-size: 1.4rem; margin-top: 10px; }
+      #online-users-box { font-size: 0.85rem; padding: 5px 10px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Background & logo -->
+<div class="logo-background">
+  <img src="{{ url_for('static', filename='NamakwaUber.png') }}" alt="Logo">
+</div>
+<div class="top-left-logo">
+  <img src="{{ url_for('static', filename='NamakwaUber.png') }}" alt="Nama X Press Logo">
+</div>
+
+{% if session.get('user_name') %}
+<!-- Welcome text -->
+<div class="welcome-center" style="text-align: center; margin-top: 20px;">
+  <span class="welcome-text"><strong>Awe, {{ session['user_name'] }}!</strong> 👋</span>
+</div>
+
+<!-- Users online -->
+<div style="text-align:center;">
+  <div class="online-box" id="online-users-box">
+    🟢 Users Online: <span id="user-count">0</span>
+  </div>
+</div>
+
+<!-- Top-right buttons -->
+<div class="top-right-container">
+  <a href="{{ url_for('logout') }}" class="logout-link btn neon-btn">Logout</a>
+  <form method="GET" action="{{ url_for('be_a_driver') }}" style="margin:0;">
+    <button type="submit" class="btn neon-btn">Driver Section</button>
+  </form>
+</div>
+{% endif %}
+
+<!-- Flash messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+  <div class="flash-container">
+    {% for category, message in messages %}
+      <div class="flash {{ category }}">{{ message }}</div>
+    {% endfor %}
+  </div>
+{% endif %}
+{% endwith %}
+
+<h1>Nama X Press Bookings</h1>
+
+<p class="glow-text">
+  Bespreek jou rit vinnig of kyk na jou komende ritte hieronder. Vul jou aflaai- en afleweringsplekke in om te begin!
+</p>
+
+<p class="glow-text town-list">
+  Ons bedien tans die volgende dorpe:
+  <span>Garies</span>, <span>Steinkopf</span>, <span>Nababeep</span>, <span>Port Nolloth</span>,
+  <span>Okiep</span>, <span>Bulletrap</span>, <span>Aggeneys</span>, <span>Kamieskroon</span>,
+  <span>Bergsig</span>, <span>Carolusberg</span>, <span>Pella</span>, <span>Springbok</span>,
+  <span>Concordia (Dorpie)</span>, <span>Komaggas</span>, <span>Buffelsrivier</span>.
+</p>
+
+{% if show_button %}
+<div class="bookings-buttons-container" style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
+  <form method="GET" action="{{ url_for('my_bookings') }}">
+    <input type="hidden" name="user_name" value="{{ user_name }}">
+    <button type="submit" class="btn neon-btn">Show My Bookings</button>
+  </form>
+
+  <form method="GET" action="{{ url_for('drivers_today') }}">
+    <button type="submit" class="btn neon-btn">View Today's Drivers</button>
+  </form>
+</div>
+{% endif %}
+
+{% if not form_submitted %}
+<div class="booking-form">
+  <form method="POST" novalidate>
+    {{ form.hidden_tag() }}
+
+    <div class="form-group">
+      <label class="form-label">Pickup Location</label>
+      {{ form.pickup(class="neon-select") }}
+      {% for error in form.pickup.errors %}
+        <small style="color: #ff4444;">{{ error }}</small>
+      {% endfor %}
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Drop-off Location</label>
+      {{ form.dropoff(class="neon-select") }}
+      {% for error in form.dropoff.errors %}
+        <small style="color: #ff4444;">{{ error }}</small>
+      {% endfor %}
+    </div>
+
+    {{ form.submit(class="btn neon-btn") }}
+  </form>
+</div>
+{% endif %}
+
+<!-- Scripts -->
+<script>
+document.querySelectorAll("form").forEach(form => {
+  form.addEventListener("submit", function (e) {
+    const inputs = this.querySelectorAll("input, select");
+    let valid = true;
+
+    inputs.forEach(input => {
+      if (!input.value.trim()) {
+        valid = false;
+        let warning = document.createElement("div");
+        warning.classList.add("neon-warning");
+        warning.textContent = "⚠️ Please fill out this field";
+        input.parentNode.insertBefore(warning, input.nextSibling);
+        setTimeout(() => {
+          warning.style.opacity = "0";
+          setTimeout(() => warning.remove(), 800);
+        }, 2500);
+      }
+    });
+
+    if (!valid) e.preventDefault();
+  });
+});
+
+// Flash auto-hide
+setTimeout(() => {
+  document.querySelectorAll('.flash').forEach(el => {
+    el.style.transition = 'opacity 0.8s ease';
+    el.style.opacity = '0';
+    setTimeout(() => el.remove(), 800);
+  });
+}, 4000);
+</script>
+
+<!-- Online Users -->
+<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+<script>
+  const socket = io();
+  socket.on('update_users', function(data) {
+    document.getElementById('user-count').textContent = data.count;
+  });
+</script>
+{% if session.get("show_intro") %}
+<style>
+/* Modal container */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.8); /* dark overlay, semi-transparent */
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    opacity: 1;
+    transition: opacity 0.8s ease;
+}
+
+/* Fade-out */
+.modal.fade-out {
+    opacity: 0;
+}
+
+/* Modal content box */
+.modal-content {
+    background: #111; /* match dark theme */
+    padding: 20px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 500px;
+    text-align: center;
+    box-shadow: 0 0 20px #00f0ff; /* neon glow effect */
+}
+
+/* Video styling */
+.modal-content video {
+    width: 100%;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    background: #000; /* in case video has transparency */
+}
+
+/* Got It button */
+.modal-content button {
+    padding: 10px 20px;
+    background-color: #00f0ff;
+    color: #000;
+    font-weight: 600;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s, box-shadow 0.3s;
+}
+.modal-content button:hover {
+    background-color: #00c0cc;
+    box-shadow: 0 0 10px #00f0ff;
+}
+</style>
+
+<div id="onboardingModal" class="modal">
+    <div class="modal-content">
+        <h2 style="color:#00f0ff; text-shadow: 0 0 8px #00f0ff;">Welcome to NamaXpress 👋</h2>
+
+        <video id="welcomeVideo" controls autoplay muted playsinline>
+            <source src="{{ url_for('static', filename='Welcome_Present.mp4') }}" type="video/mp4">
+        </video>
+
+        <button onclick="closeIntro()">Got It</button>
+    </div>
+</div>
+
+<script>
+function closeIntro() {
+    const modal = document.getElementById("onboardingModal");
+
+    // Add fade-out class
+    modal.classList.add("fade-out");
+
+    // After fade-out completes
+    modal.addEventListener("transitionend", function handler() {
+        modal.style.display = "none";
+        modal.classList.remove("fade-out");
+
+        // Clear on server so it never shows again
+        fetch("/clear_intro", { method: "POST" });
+
+        modal.removeEventListener("transitionend", handler);
+    });
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    const modal = document.getElementById("onboardingModal");
+    const video = document.getElementById("welcomeVideo");
+
+    // Show modal
+    modal.style.display = "flex";
+
+    // Attempt to play video
+    if(video) {
+        const playPromise = video.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(error => console.log("Autoplay failed:", error));
+        }
+
+        // Close modal automatically when video ends
+        video.addEventListener("ended", function() {
+            closeIntro();
+        });
+    }
+});
+</script>
+{% endif %}
+
+</body>
+</html>

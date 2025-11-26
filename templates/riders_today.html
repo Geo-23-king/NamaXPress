@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Riders Today — {{ pickup }} to {{ dropoff }}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: radial-gradient(circle at center, #1b0033, #10001a 90%);
+      color: #fff;
+      text-align: center;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    h1 {
+      margin-top: 30px;
+      font-size: 1.8rem;
+      color: #d9b3ff;
+      text-shadow: 0 0 10px #b266ff, 0 0 20px #6a0dad;
+    }
+
+    .locations-container {
+      margin-top: 10px;
+    }
+
+    .location-group {
+      margin: 5px 0;
+    }
+
+    .location-group strong {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 1rem;
+      color: #b266ff;
+    }
+
+    .location-badge {
+      display: inline-block;
+      margin: 2px 5px;
+      padding: 4px 10px;
+      background: rgba(178,102,255,0.3);
+      border-radius: 8px;
+      font-size: 0.9rem;
+      color: #fff;
+    }
+
+    table.neon-table {
+      width: 90%;
+      margin: 40px auto;
+      border-collapse: collapse;
+      border: 2px solid rgba(186,85,211,0.5);
+      box-shadow: 0 0 30px rgba(186,85,211,0.5);
+      border-radius: 10px;
+      overflow: hidden;
+      background: rgba(20,0,40,0.8);
+    }
+
+    th, td {
+      padding: 12px 15px;
+      border-bottom: 1px solid rgba(186,85,211,0.3);
+      font-size: 1rem;
+      text-align: center;
+    }
+
+    th {
+      background: linear-gradient(90deg, #6a0dad, #b266ff);
+      color: #fff;
+      font-weight: 600;
+    }
+
+    tr:hover {
+      background: rgba(138,43,226,0.2);
+    }
+
+    a.chat-btn {
+      display: inline-block;
+      background: linear-gradient(135deg, #6a0dad, #b266ff);
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 25px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      box-shadow: 0 0 10px rgba(178,102,255,0.5);
+      transition: transform 0.2s ease, box-shadow 0.3s ease;
+    }
+
+    a.chat-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 20px rgba(178,102,255,0.9);
+    }
+
+    /* === Back Button === */
+    .back-section {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 1200;
+      transition: opacity 0.3s ease;
+    }
+    .back-section.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .back-btn {
+      background: linear-gradient(135deg, #6a0dad, #b266ff);
+      color: #fff;
+      border: none;
+      border-radius: 25px;
+      padding: 8px 15px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(178,102,255,0.6);
+      transition: transform 0.2s ease, box-shadow 0.3s ease;
+    }
+    .back-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 15px rgba(178,102,255,0.9);
+    }
+
+    /* === Chat Sidebar === */
+    #chat-sidebar {
+      position: fixed;
+      top: 0;
+      right: -100%;
+      width: 100%;
+      max-width: 400px;
+      height: 100vh;
+      background: rgba(20, 0, 40, 0.95);
+      border-left: 2px solid rgba(186,85,211,0.5);
+      box-shadow: -4px 0 20px rgba(138, 43, 226, 0.5);
+      display: flex;
+      flex-direction: column;
+      transition: right 0.4s ease;
+      z-index: 1300;
+      backdrop-filter: blur(12px);
+    }
+
+    #chat-sidebar.open { right: 0; }
+
+    #chat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(90deg, #6a0dad, #b266ff);
+      color: #fff;
+      padding: 12px 18px;
+    }
+
+    #chat-header h3 { margin: 0; font-size: 1.1rem; }
+
+    #close-chat {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 22px;
+      cursor: pointer;
+    }
+
+    #chat-box { flex: 1; padding: 12px; overflow-y: auto; }
+
+    .message {
+      margin: 10px 0;
+      padding: 10px 14px;
+      border-radius: 18px;
+      max-width: 75%;
+      word-wrap: break-word;
+    }
+
+    .from-me { background: linear-gradient(135deg, #6a0dad, #b266ff); color: #fff; margin-left: auto; }
+    .from-other { background: linear-gradient(135deg, #7f00ff, #9b30ff); color: #fff; margin-right: auto; }
+
+    #chat-input-container {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      background: rgba(0,0,0,0.3);
+    }
+
+    #chat-input {
+      flex: 1;
+      padding: 12px 15px;
+      border-radius: 25px;
+      border: 2px solid rgba(186,85,211,0.6);
+      background: rgba(0,0,0,0.4);
+      color: #fff;
+      outline: none;
+    }
+
+    #send-btn, #emoji-btn {
+      margin-left: 8px;
+      padding: 10px 14px;
+      border: none;
+      border-radius: 25px;
+      background: linear-gradient(135deg, #6a0dad, #b266ff);
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+
+    #emoji-picker {
+      display: none;
+      position: absolute;
+      bottom: 80px;
+      right: 20px;
+      background: rgba(30,0,60,0.95);
+      border: 2px solid rgba(186,85,211,0.6);
+      border-radius: 15px;
+      padding: 10px;
+      box-shadow: 0 0 20px rgba(186,85,211,0.6);
+      max-height: 180px;
+      overflow-y: auto;
+      width: 220px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .emoji { cursor: pointer; font-size: 22px; margin: 5px; }
+
+    @media (max-width: 600px) {
+      h1 { font-size: 1.5rem; margin-top: 15px; }
+      th, td { font-size: 0.85rem; padding: 8px; }
+      .chat-btn { padding: 6px 12px; font-size: 0.8rem; }
+      #chat-sidebar { max-width: 100%; border-left: none; }
+      #chat-header { padding: 10px; }
+      .back-btn { padding: 7px 13px; font-size: 0.85rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 🔙 Back Button -->
+  <div class="back-section" id="back-section">
+    <button class="back-btn" onclick="history.back()">⬅ Back</button>
+  </div>
+
+  <h1>Riders Today</h1>
+
+  <div class="locations-container">
+    <div class="location-group">
+      <strong>Pickup:</strong>
+      {% for loc in pickup.split(',') %}
+        <span class="location-badge">{{ loc }}</span>
+      {% endfor %}
+    </div>
+    <div class="location-group">
+      <strong>Dropoff:</strong>
+      {% for loc in dropoff.split(',') %}
+        <span class="location-badge">{{ loc }}</span>
+      {% endfor %}
+    </div>
+  </div>
+
+  {% if riders %}
+  <table class="neon-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Pickup</th>
+        <th>Dropoff</th>
+        <th>Seats</th>
+        <th>Time</th>
+        <th>Chat</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for rider in riders %}
+      <tr>
+        <td>{{ rider.user_name }}</td>
+        <td>{{ rider.pickup }}</td>
+        <td>{{ rider.dropoff }}</td>
+        <td>{{ rider.seats }}</td>
+        <td>{{ rider.timestamp.strftime("%H:%M") }}</td>
+        <td><a href="#" class="chat-btn" data-rider="{{ rider.user_name }}">💬 Chat</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p>No riders booked today yet.</p>
+  {% endif %}
+
+  <!-- Chat Sidebar -->
+  <div id="chat-sidebar">
+    <div id="chat-header">
+      <h3 id="chat-title">Private Chat</h3>
+      <button id="close-chat">✖</button>
+    </div>
+    <div id="chat-box"></div>
+    <div id="chat-input-container">
+      <input type="text" id="chat-input" placeholder="Type your message..." autocomplete="off">
+      <button id="emoji-btn">😊</button>
+      <button id="send-btn">Send</button>
+      <div id="emoji-picker"></div>
+    </div>
+  </div>
+
+  <script>
+    const socket = io();
+    const me = "{{ session.get('user_name', '') }}";
+    let chattingWith = null;
+
+    const sidebar = document.getElementById("chat-sidebar");
+    const chatBox = document.getElementById("chat-box");
+    const input = document.getElementById("chat-input");
+    const sendBtn = document.getElementById("send-btn");
+    const emojiBtn = document.getElementById("emoji-btn");
+    const emojiPicker = document.getElementById("emoji-picker");
+    const closeBtn = document.getElementById("close-chat");
+    const title = document.getElementById("chat-title");
+    const backSection = document.getElementById("back-section");
+
+    const emojis = ["😀","😁","😂","🤣","😅","😊","😍","😘","😎","😜","🤩","🤔","🤗","🙄","😇","😭","😡","👍","👎","👏","🙏","🔥","💜","💬","🚗","🚌","🎉","💪","😴","😏"];
+    emojis.forEach(e => {
+      const span = document.createElement("span");
+      span.textContent = e;
+      span.className = "emoji";
+      span.onclick = () => input.value += e;
+      emojiPicker.appendChild(span);
+    });
+
+    emojiBtn.addEventListener("click", () => {
+      emojiPicker.style.display = emojiPicker.style.display === "flex" ? "none" : "flex";
+    });
+
+    document.querySelectorAll(".chat-btn").forEach(btn => {
+      btn.addEventListener("click", e => {
+        e.preventDefault();
+        chattingWith = btn.dataset.rider;
+        title.textContent = `Chat with ${chattingWith}`;
+        sidebar.classList.add("open");
+        backSection.classList.add("hidden");
+        chatBox.scrollTop = chatBox.scrollHeight;
+        emojiPicker.style.display = "none";
+      });
+    });
+
+    closeBtn.addEventListener("click", () => {
+      sidebar.classList.remove("open");
+      chattingWith = null;
+      backSection.classList.remove("hidden");
+      emojiPicker.style.display = "none";
+    });
+
+    sendBtn.addEventListener("click", () => {
+      const msg = input.value.trim();
+      if (!msg || !chattingWith) return;
+      socket.emit("private_message", { to: chattingWith, message: msg });
+      input.value = "";
+    });
+
+    input.addEventListener("keypress", e => {
+      if (e.key === "Enter") sendBtn.click();
+    });
+
+    socket.on("private_message", data => {
+      if (data.from === chattingWith || data.from === me) {
+        const cls = data.from === me ? "from-me" : "from-other";
+        addMessage(`${data.from}: ${data.message}`, cls);
+      }
+    });
+
+    function addMessage(msg, cls) {
+      const div = document.createElement("div");
+      div.className = `message ${cls}`;
+      div.innerHTML = msg;
+      chatBox.appendChild(div);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+  </script>
+
+</body>
+</html>

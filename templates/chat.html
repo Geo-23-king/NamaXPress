@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat: {{ driver_name }} & {{ rider_name }}</title>
+  <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+  <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+  <style>
+body {
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  background: radial-gradient(circle at center, #1b0033, #10001a 90%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+#chat-container {
+  display: flex;
+  flex-direction: column;
+  width: 420px;
+  max-width: 90%;
+  height: 600px;
+  border-radius: 25px;
+  background: rgba(20,0,40,0.85);
+  box-shadow:
+    0 0 30px rgba(186,85,211,0.7),
+    0 0 60px rgba(138,43,226,0.5),
+    0 0 100px rgba(138,43,226,0.3);
+  border: 2px solid rgba(186,85,211,0.6);
+  backdrop-filter: blur(12px);
+}
+
+#chat-header {
+  background: linear-gradient(90deg, #6a0dad, #b266ff);
+  padding: 15px;
+  text-align: center;
+  color: #fff;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+#chat-box {
+  flex: 1;
+  padding: 15px;
+  overflow-y: auto; /* makes chat scrollable */
+  background: rgba(0,0,0,0.25);
+  border-top: 2px solid rgba(186,85,211,0.5);
+  border-bottom: 2px solid rgba(186,85,211,0.5);
+  border-radius: 0;
+}
+
+/* Messages */
+.message {
+  display: block;  /* each message on its own line */
+  clear: both;     /* prevents messages from sitting next to each other */
+  margin: 5px 0;
+  padding: 10px 15px;
+  border-radius: 20px;
+  max-width: 75%;
+  word-wrap: break-word;
+}
+
+.from-me {
+  background: linear-gradient(135deg, #6a0dad, #b266ff);
+  color: #fff;
+  margin-left: auto; /* align right */
+}
+
+.from-other {
+  background: linear-gradient(135deg, #7f00ff, #9b30ff);
+  color: #fff;
+  margin-right: auto; /* align left */
+}
+
+/* Input container */
+#chat-input-container {
+  display: flex;
+  padding: 10px;
+  background: rgba(0,0,0,0.25);
+}
+
+#chat-input {
+  flex: 1;
+  padding: 14px 20px;
+  border-radius: 25px;
+  border: 2px solid rgba(186,85,211,0.6);
+  outline: none;
+  font-size: 16px;
+  background: rgba(0,0,0,0.3);
+  color: #fff;
+}
+
+#chat-input:focus {
+  border-color: #b266ff;
+}
+
+#send-btn {
+  margin-left: 10px;
+  padding: 14px 24px;
+  border: none;
+  border-radius: 25px;
+  background: linear-gradient(135deg, #6a0dad, #b266ff);
+  color: #fff;
+  cursor: pointer;
+}
+</style>
+</head>
+<body>
+
+  <div id="chat-container">
+  <div id="chat-header">
+    <h2>Private Chat: {{ driver_name }} & {{ rider_name }}</h2>
+  </div>
+
+  <div id="chat-box">
+    <!-- Messages will appear here -->
+  </div>
+
+  <div id="chat-input-container">
+    <input type="text" id="chat-input" placeholder="Type a message..." autocomplete="off">
+    <button id="send-btn">Send</button>
+  </div>
+</div>
+
+  <script>
+  const socket = io();
+
+  const driver = "{{ driver_name }}";
+  const rider = "{{ rider_name }}";
+  const me = "{{ user_name }}"; // current user
+
+  const chatBox = document.getElementById('chat-box');
+  const messageInput = document.getElementById('chat-input'); // updated ID
+  const sendBtn = document.getElementById('send-btn');        // updated ID
+
+  // Send message
+  sendBtn.addEventListener('click', () => {
+    const msg = messageInput.value.trim();
+    if(msg === "") return;
+    socket.emit('private_message', {
+      to: driver === me ? rider : driver,
+      message: msg
+    });
+    addMessage(`Me: ${msg}`, 'from-me');
+    messageInput.value = '';
+  });
+
+  // Press Enter to send
+  messageInput.addEventListener('keypress', (e) => {
+    if(e.key === "Enter") sendBtn.click();
+  });
+
+  // Receive message
+  socket.on('private_message', (data) => {
+    if(data.from === driver || data.from === rider) {
+      addMessage(`${data.from}: ${data.message}`, 'from-other');
+    }
+  });
+
+  function addMessage(msg, cls) {
+    const div = document.createElement('div');
+    div.textContent = msg;
+    div.className = `message ${cls}`;
+    chatBox.appendChild(div);
+    chatBox.scrollTop = chatBox.scrollHeight; // auto-scroll to bottom
+  }
+</script>
+
+</body>
+</html>

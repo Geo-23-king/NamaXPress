@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Bookings — {{ user_name }}</title>
+  <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: radial-gradient(circle at center, #1b0033, #10001a 90%);
+      color: #fff;
+      margin: 0;
+      padding: 0 10px;
+      min-height: 100vh;
+    }
+
+    /* Logo top-left */
+    .top-left-logo {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 1200;
+    }
+
+    h1 {
+      text-align: center;
+      margin-top: 80px; /* leave space for logo and back button */
+      color: #d9b3ff;
+      text-shadow: 0 0 10px #b266ff, 0 0 20px #6a0dad;
+    }
+
+    /* Back button above heading */
+    .back-section {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .back-btn {
+      background: linear-gradient(135deg, #6a0dad, #b266ff);
+      color: #fff;
+      border: none;
+      border-radius: 25px;
+      padding: 8px 15px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(178,102,255,0.6);
+      transition: transform 0.2s ease, box-shadow 0.3s ease;
+    }
+
+    .back-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 15px rgba(178,102,255,0.9);
+    }
+
+    .bookings-table {
+      width: 100%;
+      max-width: 900px;
+      margin: 20px auto;
+      border-collapse: collapse;
+      background: rgba(20, 0, 40, 0.8);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 0 25px rgba(186,85,211,0.4);
+    }
+
+    .bookings-table th, .bookings-table td {
+      padding: 12px 10px;
+      border-bottom: 1px solid rgba(186,85,211,0.3);
+      text-align: center;
+      font-size: 0.95rem;
+      color: #fff;
+    }
+
+    .bookings-table th {
+      background: linear-gradient(90deg, #6a0dad, #b266ff);
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .status {
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .status.pending { color: #ffcc00; }
+    .status.confirmed { color: #00ff99; }
+    .status.accepted { color: #00ccff; }
+    .status.unknown { color: #aaa; }
+
+    .delete-btn {
+      background: linear-gradient(135deg, #ff3333, #ff6666);
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      padding: 6px 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.3s ease;
+    }
+
+    .delete-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 10px rgba(255,102,102,0.7);
+    }
+
+    .delete-text {
+      display: block;
+      font-size: 0.75rem;
+      color: #ccc;
+      margin-top: 2px;
+    }
+
+    @media (max-width: 600px) {
+      .bookings-table th, .bookings-table td { font-size: 0.8rem; padding: 8px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Logo top-left -->
+  <div class="top-left-logo">
+    <img src="{{ url_for('static', filename='NamakwaUber.png') }}" alt="Nama X Press Logo" width="60">
+  </div>
+
+  <!-- Back Button -->
+  <div class="back-section" id="back-section">
+    <button class="back-btn" onclick="history.back()">⬅ Back</button>
+  </div>
+
+  <h1>My Bookings for {{ user_name }}</h1>
+
+  {% if bookings %}
+    <table class="bookings-table">
+      <thead>
+        <tr>
+          <th>Pickup</th>
+          <th>Drop‑off</th>
+          <th>Status</th>
+          <th>Booking Time Place</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in bookings %}
+          <tr>
+            <td>{{ b.pickup }}</td>
+            <td>{{ b.dropoff }}</td>
+            <td>
+              {% if b.status == "Pending" %}
+                <span class="status pending">&#9679;</span> Pending
+              {% elif b.status == "Confirmed" %}
+                <span class="status confirmed">&#9679;</span> Confirmed
+              {% elif b.status == "Accepted" %}
+                <span class="status accepted">&#9679;</span> Accepted
+              {% else %}
+                <span class="status unknown">&#9679;</span> {{ b.status }}
+              {% endif %}
+            </td>
+            <td>{{ b.timestamp.strftime("%H:%M %p") }}</td>
+            <td>
+              <form method="POST" action="{{ url_for('delete_booking', booking_id=b.id) }}" style="display:inline;">
+                <button type="submit" class="delete-btn">🗑️ Delete</button>
+              </form>
+
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No bookings found.</p>
+  {% endif %}
+
+</body>
+</html>

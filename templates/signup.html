@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nama X Press — Sign Up</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link href="static/css/signup.css" rel="stylesheet">
+</head>
+<body>
+  <div class="glow"></div>
+  <div class="signup-card">
+    <img src="static/NamakwaUber.png" alt="Nama X Press Logo">
+    <h2>Join Nama X Press</h2>
+    <p>Maak jou nuwe account en begin die journey🚗🚗.</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="flash-message {{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+    <form method="POST">
+       {{ user.hidden_tag() }}
+        {{ user.name(class="") }}
+      <div class="password-field">
+  {{ user.password(class="password-input") }}
+  <span class="toggle-password" onclick="togglePassword()">👁️</span>
+</div>
+       {{ user.accepted(class="btn-signup") }}
+    </form>
+
+
+
+    <div class="login-link">
+      Already have an account? <a href="/login">Log in</a>
+    </div>
+  </div>
+<script>
+function togglePassword() {
+  const passwordInput = document.querySelector('.password-input');
+  const eyeIcon = document.querySelector('.toggle-password');
+
+  if (passwordInput.type === "password") {
+    passwordInput.type = "text";
+    eyeIcon.textContent = "👁️"; // change icon when showing
+  } else {
+    passwordInput.type = "password";
+    eyeIcon.textContent = "🙈"; // back to hidden
+  }
+}
+</script>
+</body>
+</html>
+
+
+<!--to get the button blue-->
+<!--  <form method="POST">-->
+<!--      <input type="text" name="username" placeholder="Sit jou naam in.." required>-->
+<!--      <input type="email" name="email" placeholder="Email Address" required>-->
+<!--      <button type="submit">Sign Up</button>-->
+<!--    </form>-->

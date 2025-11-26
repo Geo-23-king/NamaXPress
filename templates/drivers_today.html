@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Available Drivers Today</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: radial-gradient(circle at center, #1b0033, #10001a 90%);
+      color: #fff;
+      text-align: center;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    h1 {
+      margin: 20px 0;
+      font-size: 1.8rem;
+      color: #d9b3ff;
+      text-shadow: 0 0 10px #b266ff, 0 0 20px #6a0dad;
+    }
+
+    .back-section {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 1200;
+      transition: opacity 0.3s ease;
+    }
+
+    .back-section.hidden { opacity: 0; pointer-events: none; }
+
+    .back-btn {
+      background: linear-gradient(135deg, #6a0dad, #b266ff);
+      color: #fff;
+      border: none;
+      border-radius: 25px;
+      padding: 8px 15px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(178,102,255,0.6);
+      transition: transform 0.2s ease, box-shadow 0.3s ease;
+    }
+
+    .back-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 15px rgba(178,102,255,0.9);
+    }
+
+    .table-container {
+      width: 95%;
+      max-width: 800px;
+      margin: 80px auto 20px auto;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border-radius: 12px;
+      box-shadow: 0 0 25px rgba(186,85,211,0.4);
+      background: rgba(20, 0, 40, 0.75);
+    }
+
+    .driver-table {
+      width: 100%;
+      border-collapse: collapse;
+      color: #fff;
+    }
+
+    .driver-table th, .driver-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(186,85,211,0.3);
+      text-align: center;
+      font-size: 0.95rem;
+    }
+
+    .driver-table th {
+      background: linear-gradient(90deg, #6a0dad, #b266ff);
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .driver-table tr:hover {
+      background: rgba(138,43,226,0.25);
+    }
+
+    .chat-btn {
+      display: inline-block;
+      background: linear-gradient(135deg, #6a0dad, #b266ff);
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 20px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.85rem;
+      transition: transform 0.2s ease, box-shadow 0.3s ease;
+      box-shadow: 0 0 8px rgba(178,102,255,0.5);
+      position: relative;
+    }
+
+    .chat-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 15px rgba(178,102,255,0.9);
+    }
+
+    /* Chat Sidebar */
+    #chat-sidebar {
+      position: fixed;
+      top: 0;
+      right: -100%;
+      width: 100%;
+      max-width: 400px;
+      height: 100vh;
+      background: rgba(20, 0, 40, 0.95);
+      border-left: 2px solid rgba(186,85,211,0.5);
+      box-shadow: -4px 0 20px rgba(138, 43, 226, 0.5);
+      display: flex;
+      flex-direction: column;
+      transition: right 0.4s ease;
+      z-index: 1300;
+      backdrop-filter: blur(12px);
+    }
+
+    #chat-sidebar.open { right: 0; }
+
+    #chat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(90deg, #6a0dad, #b266ff);
+      color: #fff;
+      padding: 12px 18px;
+    }
+
+    #chat-header h3 { margin: 0; font-size: 1.1rem; }
+
+    #close-chat {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 22px;
+      cursor: pointer;
+    }
+
+    #chat-box { flex: 1; padding: 12px; overflow-y: auto; }
+
+    .message {
+      margin: 10px 0;
+      padding: 10px 14px;
+      border-radius: 18px;
+      max-width: 75%;
+      word-wrap: break-word;
+    }
+
+    .from-me { background: linear-gradient(135deg, #6a0dad, #b266ff); color: #fff; margin-left: auto; }
+    .from-other { background: linear-gradient(135deg, #7f00ff, #9b30ff); color: #fff; margin-right: auto; }
+
+    #chat-input-container {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      background: rgba(0,0,0,0.3);
+    }
+
+    #chat-input {
+      flex: 1;
+      padding: 12px 15px;
+      border-radius: 25px;
+      border: 2px solid rgba(186,85,211,0.6);
+      background: rgba(0,0,0,0.4);
+      color: #fff;
+      outline: none;
+    }
+
+    #send-btn, #emoji-btn {
+      margin-left: 8px;
+      padding: 10px 14px;
+      border: none;
+      border-radius: 25px;
+      background: linear-gradient(135deg, #6a0dad, #b266ff);
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+
+    #emoji-picker {
+      display: none;
+      position: absolute;
+      bottom: 80px;
+      right: 20px;
+      background: rgba(30,0,60,0.95);
+      border: 2px solid rgba(186,85,211,0.6);
+      border-radius: 15px;
+      padding: 10px;
+      box-shadow: 0 0 20px rgba(186,85,211,0.6);
+      max-height: 180px;
+      overflow-y: auto;
+      width: 220px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .emoji { cursor: pointer; font-size: 22px; margin: 5px; }
+
+    /* Mobile Table & Chat Responsive */
+    @media (max-width: 600px) {
+      h1 { font-size: 1.5rem; margin-top: 15px; }
+      .driver-table th, .driver-table td { font-size: 0.85rem; padding: 6px; }
+
+      /* Stack table rows */
+      .driver-table, .driver-table thead, .driver-table tbody, .driver-table th, .driver-table td, .driver-table tr {
+        display: block;
+      }
+      .driver-table thead tr { display: none; }
+      .driver-table tr {
+        margin-bottom: 12px;
+        border-bottom: 1px solid rgba(186,85,211,0.3);
+        background: rgba(30,0,60,0.6);
+        border-radius: 8px;
+        padding: 10px;
+      }
+      .driver-table td {
+        display: flex;
+        justify-content: space-between;
+        text-align: left;
+        padding: 6px 8px;
+      }
+      .driver-table td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #d9b3ff;
+        margin-right: 8px;
+      }
+      .chat-btn { font-size: 0.8rem; padding: 6px 12px; }
+
+      /* Make chat sidebar full width */
+      #chat-sidebar { width: 100%; max-width: 100%; right: -100%; }
+      #chat-sidebar.open { right: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="back-section" id="back-section">
+  <button class="back-btn" onclick="history.back()">⬅ Back</button>
+</div>
+
+<h1>Available Drivers for Today</h1>
+
+{% if drivers %}
+<div class="table-container">
+  <table class="driver-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Pickup</th>
+        <th>Dropoff</th>
+        <th>Seats</th>
+        <th>Time</th>
+        <th>Chat</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for driver in drivers %}
+      <tr>
+        <td data-label="Name">{{ driver.name or driver.user_name or driver.driver_name }}</td>
+        <td data-label="Pickup">{{ driver.pickup }}</td>
+        <td data-label="Dropoff">{{ driver.dropoff }}</td>
+        <td data-label="Seats">{{ driver.seats }}</td>
+        <td data-label="Time">{{ driver.timestamp.strftime("%H:%M") }}</td>
+        <td data-label="Chat"><a href="#" class="chat-btn" data-driver="{{ driver.name or driver.user_name or driver.driver_name }}">💬 Chat</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<p>No drivers available today.</p>
+{% endif %}
+
+<div id="chat-sidebar">
+  <div id="chat-header">
+    <h3 id="chat-title">Private Chat</h3>
+    <button id="close-chat">✖</button>
+  </div>
+  <div id="chat-box"></div>
+  <div id="chat-input-container">
+    <input type="text" id="chat-input" placeholder="Type your message..." autocomplete="off">
+    <button id="emoji-btn">😊</button>
+    <button id="send-btn">Send</button>
+    <div id="emoji-picker"></div>
+  </div>
+</div>
+
+<script>
+const socket = io();
+const me = "{{ user_name }}";
+let chattingWith = null;
+
+const sidebar = document.getElementById("chat-sidebar");
+const chatBox = document.getElementById("chat-box");
+const input = document.getElementById("chat-input");
+const sendBtn = document.getElementById("send-btn");
+const emojiBtn = document.getElementById("emoji-btn");
+const emojiPicker = document.getElementById("emoji-picker");
+const closeBtn = document.getElementById("close-chat");
+const title = document.getElementById("chat-title");
+const backSection = document.getElementById("back-section");
+
+if (Notification.permission !== "granted") Notification.requestPermission();
+
+const emojis = ["😀","😁","😂","🤣","😅","😊","😍","😘","😎","😜","🤩","🤔","🤗","🙄","😇","😭","😡","👍","👎","👏","🙏","🔥","💜","💬","🚗","🚌","🎉","💪","😴","😏"];
+emojis.forEach(e => {
+  const span = document.createElement("span");
+  span.textContent = e;
+  span.className = "emoji";
+  span.onclick = () => input.value += e;
+  emojiPicker.appendChild(span);
+});
+
+emojiBtn.addEventListener("click", () => {
+  emojiPicker.style.display = emojiPicker.style.display === "flex" ? "none" : "flex";
+});
+
+document.querySelectorAll(".chat-btn").forEach(btn => {
+  btn.addEventListener("click", e => {
+    e.preventDefault();
+    chattingWith = btn.dataset.driver;
+    title.textContent = `Chat with ${chattingWith}`;
+    sidebar.classList.add("open");
+    backSection.classList.add("hidden");
+    chatBox.scrollTop = chatBox.scrollHeight;
+    emojiPicker.style.display = "none";
+  });
+});
+
+closeBtn.addEventListener("click", () => {
+  sidebar.classList.remove("open");
+  chattingWith = null;
+  backSection.classList.remove("hidden");
+  emojiPicker.style.display = "none";
+});
+
+sendBtn.addEventListener("click", () => {
+  const msg = input.value.trim();
+  if (!msg || !chattingWith) return;
+  socket.emit("private_message", { to: chattingWith, message: msg });
+  input.value = "";
+});
+
+input.addEventListener("keypress", e => {
+  if (e.key === "Enter") sendBtn.click();
+});
+
+socket.on("private_message", data => {
+  const cls = data.from === me ? "from-me" : "from-other";
+  const div = document.createElement("div");
+  div.className = `message ${cls}`;
+  div.innerHTML = `${data.from}: ${data.message}`;
+  chatBox.appendChild(div);
+  chatBox.scrollTop = chatBox.scrollHeight;
+
+  if (data.from !== me && Notification.permission === "granted" && !sidebar.classList.contains("open")) {
+    new Notification(`New message from ${data.from}`, { body: data.message, icon: '/static/images/message-icon.png' });
+    new Audio('/static/sound/notification.mp3').play();
+  }
+});
+</script>
+</body>
+</html>

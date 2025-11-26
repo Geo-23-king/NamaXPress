@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nama X Press</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <link href="static/css/home.css" rel="stylesheet">
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+  <meta name="theme-color" content="#6a0dad">
+</head>
+<body>
+
+<!-- Video Background -->
+<div class="video-background">
+  <iframe
+    src="https://www.youtube.com/embed/Wt_dDY7X8DA?autoplay=1&mute=1&loop=1&playlist=Wt_dDY7X8DA&controls=0&modestbranding=1&rel=0"
+    frameborder="0"
+    allow="autoplay; fullscreen"
+    allowfullscreen>
+  </iframe>
+</div>
+
+
+<div class="logo-title">
+  <img src="static/NamakwaUber.png" alt="Nama X Press Logo" class="small-logo">
+  <h1>Nama <span class="highlight">X</span> Press 24/7</h1>
+</div>
+
+<p style="
+  max-width: 90%;
+  text-align: center;
+  margin: 20px auto;
+  color: #a3baff;
+  text-shadow: 0 0 10px #3f7dff;
+  line-height: 1.7;
+  padding: 0 10px;
+">
+  Welkom by <strong>Nama X Press</strong>, jou toegang tot maklike en gerieflike ritte reg oor Namakwaland.
+  Of jy nou veilig wil reis of ’n bestuurder wil word en by ons groeiende gemeenskap wil aansluit,
+  ons het jou gedek. Begin sommer hier onder!
+</p>
+
+<div class="buttons">
+  <a href="{{ url_for('signup', next=url_for('namax')) }}" class="btn">Book a Ride</a>
+  <a href="{{ url_for('signup', next=url_for('be_a_driver')) }}" class="btn">Be a Driver</a>
+</div>
+
+
+
+<div class="scroll-down" onclick="document.getElementById('videos').scrollIntoView({ behavior: 'smooth' });">
+  ↓ Scroll af vir die Instruksie Vids ↓
+</div>
+
+<p style="
+  max-width: 90%;
+  text-align: center;
+  margin: 20px auto 30px;
+  color: #a3baff;
+  text-shadow: 0 0 10px #3f7dff;
+  line-height: 1.7;
+  padding: 0 10px;
+">
+  Kyk gou ons vinnige instruksie-videos om te leer hoe om ’n rit te bespreek, as bestuurder te registreer,
+  en die beste uit jou <strong>Nama X Press</strong> ervaring te kry. Alles wat jy nodig het, is net ’n kliek weg..
+</p>
+<!-- Scrollable section -->
+<section id="videos">
+  <h2>Instruction Videos</h2>
+  <div class="buttons">
+    <a href="https://youtu.be/yourvideo1" target="_blank" class="btn">Watch Instruction Video 1</a>
+    <a href="https://youtu.be/yourvideo2" target="_blank" class="btn">Watch Instruction Video 2</a>
+  </div>
+</section>
+
+<!-- ================= PWA Scripts ================= -->
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('{{ url_for("static", filename="service-worker.js") }}')
+    .then(reg => console.log('Service Worker registered', reg))
+    .catch(err => console.log('Service Worker failed', err));
+}
+
+// Optional: Custom Install Button
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+
+  const btn = document.createElement('button');
+  btn.textContent = 'Install Nama X Press App';
+  btn.classList.add('btn');
+  btn.style.position = 'fixed';
+  btn.style.bottom = '20px';
+  btn.style.left = '50%';
+  btn.style.transform = 'translateX(-50%)';
+  btn.style.zIndex = '1000';
+  document.body.appendChild(btn);
+
+  btn.addEventListener('click', () => {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(choice => {
+      console.log('User choice:', choice.outcome);
+      btn.remove();
+    });
+  });
+});
+</script>
+
+{% for ad in ads %}
+  <a href="{{ url_for('ad_click', ad_id=ad.id) }}" target="_blank">
+    <img src="{{ ad.image_url }}" alt="{{ ad.business_name }}"
+         style="width:300px; border-radius:10px; margin:10px; opacity:0.9;">
+  </a>
+{% endfor %}
+
+</body>
+</html>
